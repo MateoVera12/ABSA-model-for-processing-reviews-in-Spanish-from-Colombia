@@ -1,0 +1,25 @@
+# Python cache/bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env/
+
+# Local dev / OS
+.DS_Store
+Thumbs.db
+
+# Outputs / artifacts
+*.pt
+*.pt.zip
+cv*_results*.json
+cv*.json
+
+# Project-specific (local folder)
+beto312/
+
