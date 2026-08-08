@@ -6,41 +6,91 @@
 
 ## Why this project matters
 
-Traditional sentiment analysis answers *whether* a review is positive or negative. This project goes further by identifying **what part of the review expresses the opinion** and **which aspect it refers to**.
+Traditional sentiment analysis answers *whether* a review is positive or negative. This project goes further by identifying **what part of the review expresses the opinion**, **which aspect it refers to**, **the corresponding software-quality category**, and **the sentiment expressed by that evidence**.
 
-Example concept:
+Example:
 
 ```text
-"La aplicación es rápida, pero el inicio de sesión falla mucho."
+"me gustan mucho los envíos pero los precios son muy altos"
 
-→ evidence span: "el inicio de sesión falla mucho"
-→ aspect: authentication / login
-→ sentiment: negative
+→ evidence: "me gustan mucho los envíos"
+→ aspect: envío
+→ category: funcionalidad
+→ sentiment: POS
+
+→ evidence: "los precios son muy altos"
+→ aspect: contenido
+→ category: costos
+→ sentiment: NEG
 ```
 
 ## Model architecture
 
-The core of the project is a **span-level ABSA architecture based on BETO**, designed to detect evidence spans and then classify each detected span by aspect, category and sentiment.
+This project implements a **span-level ABSA architecture based on BETO**, rather than a conventional document-level sentiment classifier. The model first identifies the text spans that contain an opinion and then assigns structured labels to each detected span.
 
-The pipeline is:
+### End-to-end pipeline
 
 ```text
-Spanish review
-      ↓
-     BETO
-      ↓
+Review
+  │
+  ▼
+BETO
+  │
+  ├──────────────► Context representation
+  │
+  ▼
 Span detection
-      ↓
-Span + context
-   ↙    ↓    ↘
-Aspect Category Sentiment
-      ↓
-Structured output
+(Start / End)
+  │
+  ▼
+Evidence spans
+  │
+  ├── Span + Context ──► Aspect classification
+  │
+  ├── Span + Context ──► Category classification
+  │
+  └── Span + Context ──► Sentiment classification
+                              │
+                              ▼
+                   Structured ABSA output
 ```
+
+### Technical design
+
+The architecture is organized into the following stages:
+
+1. **Spanish language representation — BETO**
+   - The review is tokenized and processed by BETO (`dccuchile/bert-base-spanish-wwm-uncased`).
+   - The transformer produces contextual token embeddings that capture the meaning of each token according to the surrounding text.
+
+2. **Evidence span detection**
+   - Dedicated classifier heads predict the **start and end positions** of opinion-bearing spans.
+   - The predicted positions are decoded into one or more evidence spans inside the original review.
+
+3. **Span representation + context**
+   - The detected span is represented together with contextual information from the review.
+   - Mean pooling is used to obtain a compact representation that can be consumed by the downstream classification modules.
+
+4. **Aspect and category classification**
+   - Each detected evidence span is classified into an **aspect**.
+   - The same span/context representation is used to determine the corresponding **software-quality category**.
+
+5. **Sentiment classification**
+   - Each evidence span receives an independent sentiment prediction: **POS, NEU or NEG**.
+   - This allows a single review to contain multiple opinions with different polarities.
+
+6. **Structured output**
+   - The final prediction is represented as a collection of structured records:
+
+```text
+(span, aspect, category, sentiment)
+```
+
+This design makes the model suitable for **fine-grained review analysis**, where a single review can contain multiple pieces of evidence associated with different aspects and sentiments.
 
 ### Architecture diagram
 
-> **Core artifact:** the architecture diagram below is the most important technical visual of the project.
+> **Core technical artifact:** the complete architecture of the model is shown below, including BETO, span detection, contextual representations and the aspect, category and sentiment classification heads.
 
 ![ABSA model architecture](docs/images/absa-model-architecture.png)
 
