@@ -1,98 +1,168 @@
-# Evidence ABSA (Aspect-Based Sentiment Analysis)
+# ABSA for Colombian Spanish Reviews
 
-Implementación del modelo de **ABSA span-level** para reseñas en español, junto con:
+**Aspect-Based Sentiment Analysis (ABSA)** for Spanish-language app reviews, focused on extracting **evidence spans, aspects, categories and sentiment** from real-world Colombian Spanish text.
 
-- Entrenamiento/evaluación (script de investigación).
-- Página web en **Streamlit** para inferencia y visualización de evidencias.
+> Research project + inference application developed as part of a Systems Engineering thesis.
 
-## Requisitos
+## Why this project matters
 
-- Python 3.10+ (recomendado)
-- (Opcional) GPU con CUDA para acelerar entrenamiento
+Traditional sentiment analysis answers *whether* a review is positive or negative. This project goes further by identifying **what part of the review expresses the opinion** and **which aspect it refers to**.
 
-## Instalación
+Example concept:
 
-Crear y activar un entorno virtual:
+```text
+"La aplicación es rápida, pero el inicio de sesión falla mucho."
+
+→ evidence span: "el inicio de sesión falla mucho"
+→ aspect: authentication / login
+→ sentiment: negative
+```
+
+## Features
+
+- Span-level evidence extraction.
+- Aspect and category prediction.
+- Sentiment analysis over detected evidence.
+- Training and evaluation pipeline.
+- Optional K-Fold cross-validation.
+- Batch inference over multiple reviews.
+- Interactive **Streamlit** application for model inference and visualization.
+- Model loading from **Hugging Face Hub**.
+- Visual highlighting of detected evidence according to sentiment.
+- Tabular exploration of predictions and distributions.
+
+## Tech stack
+
+| Area | Technologies |
+| --- | --- |
+| Language | Python 3.10+ |
+| NLP / Deep Learning | PyTorch, Transformers, Hugging Face |
+| Data | Pandas, NumPy, Hugging Face Datasets |
+| ML evaluation | Scikit-learn |
+| Application | Streamlit |
+| Model distribution | Hugging Face Hub |
+| Training | GPU/CUDA supported |
+
+## Architecture
+
+```text
+                    ┌─────────────────────┐
+                    │   Spanish Review    │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │ Tokenization / NLP  │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │   ABSA Model        │
+                    │ Evidence + Aspects  │
+                    │ + Category + Sent.  │
+                    └──────────┬──────────┘
+                               │
+                 ┌─────────────┴─────────────┐
+                 ▼                           ▼
+        ┌─────────────────┐        ┌─────────────────┐
+        │ Structured JSON │        │ Streamlit UI    │
+        │ predictions     │        │ visualization   │
+        └─────────────────┘        └─────────────────┘
+```
+
+## Repository structure
+
+```text
+.
+├── absa_evidence_model.py   # Model, training and evaluation
+├── absa_inference.py        # Checkpoint loading and inference
+├── app.py                   # Streamlit application
+├── evaluator.py             # Evaluation and reporting utilities
+├── data/                    # Labeled datasets
+├── requirements.txt
+└── README.md
+```
+
+## Getting started
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/MateoVera12/ABSA-model-for-processing-reviews-in-Spanish-from-Colombia.git
+cd ABSA-model-for-processing-reviews-in-Spanish-from-Colombia
+```
+
+### 2. Create a virtual environment
 
 ```bash
 python -m venv .venv
-# Linux/macOS
-source .venv/bin/activate
-# Windows (PowerShell)
+```
+
+Windows PowerShell:
+
+```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-Instalar dependencias:
+Linux/macOS:
+
+```bash
+source .venv/bin/activate
+```
+
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Nota: `torch` puede requerir una instalación específica según tu sistema/CUDA. Si tienes problemas instalándolo desde `requirements.txt`, instala PyTorch primero y luego vuelve a ejecutar el comando de instalación.
+For CUDA-enabled training, install the appropriate PyTorch build for your environment before installing the remaining dependencies if necessary.
 
-## Dataset (entrenamiento)
+## Training
 
-Por defecto el script apunta a:
-
-```text
-data/reseñas_etiquetadas_3493.json
-```
-
-El archivo debe ser un JSON con una lista de ejemplos etiquetados (formato usado en el trabajo de grado).
-
-## Entrenamiento (modo estándar)
-
-Entrena el modelo y evalúa sobre el *test set*. Al finalizar guarda el checkpoint:
-
-- `evidence_absa_model.pt`
-
-Comando:
+Standard training/evaluation:
 
 ```bash
 python absa_evidence_model.py --data "data/etiquetas/reseñas_etiquetadas_3493.json"
 ```
 
-## Entrenamiento con Cross-Validation (opcional)
-
-Ejecuta K-Fold CV (ej. 5 folds) y guarda un resumen agregado en JSON:
+5-fold cross-validation:
 
 ```bash
-python absa_evidence_model.py --data "data/etiquetas/reseñas_etiquetadas_3493.json" --cv_folds 5 --cv_output_json "cv5_results.json"
+python absa_evidence_model.py \
+  --data "data/etiquetas/reseñas_etiquetadas_3493.json" \
+  --cv_folds 5 \
+  --cv_output_json "cv5_results.json"
 ```
 
-Si además quieres guardar un `.pt` por cada fold:
+To save a checkpoint for each fold:
 
 ```bash
-python absa_evidence_model.py --data "data/etiquetas/reseñas_etiquetadas_3493.json" --cv_folds 5 --save_fold_models
+python absa_evidence_model.py \
+  --data "data/etiquetas/reseñas_etiquetadas_3493.json" \
+  --cv_folds 5 \
+  --save_fold_models
 ```
 
-Esto genera archivos tipo:
+## Running the application
 
-- `evidence_absa_model_fold1.pt`, `evidence_absa_model_fold2.pt`, ...
-
-## Página web (Streamlit)
-
-La app está en `app.py` y usa `absa_inference.py` para cargar el checkpoint y correr inferencia.
-
-Ejecutar localmente:
+Start the Streamlit interface with:
 
 ```bash
 streamlit run app.py
 ```
 
-### Modelo usado por la app
+The application downloads the inference model from Hugging Face Hub when required, loads the checkpoint, and provides an interactive interface for analyzing reviews.
 
-Por defecto, la app descarga el modelo desde Hugging Face Hub usando `huggingface_hub.hf_hub_download` (ver `get_model_path()` en `app.py`).
+## Research context
 
-- `repo_id`: `MateoV12/ABSA_evidence_model`
-- `filename`: `evidence_absa_model.pt.zip`
+The project was developed for research on **aspect-based sentiment analysis in Colombian Spanish app reviews**. The repository contains both the model-training pipeline and an application layer that demonstrates how the trained model can be used in a practical NLP workflow.
 
+The combination of **NLP research, model training, evaluation and application development** makes this project representative of an end-to-end machine-learning workflow rather than a standalone notebook experiment.
 
-## Estructura del repo
+## Author
 
-- `absa_evidence_model.py`: modelo + entrenamiento/evaluación (modo estándar y CV)
-- `absa_inference.py`: carga del checkpoint + inferencia sobre textos
-- `app.py`: página web (Streamlit)
-- `evaluator.py`: evaluación (spans/tripletas) y utilidades de reporte
-- `data/`: dataset(s)
+**Carlos Mateo Vera Grimaldo**  
+Systems Engineer · Backend / Software Development · NLP & AI
 
+GitHub: [@MateoVera12](https://github.com/MateoVera12)
