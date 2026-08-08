@@ -18,6 +18,32 @@ Example concept:
 → sentiment: negative
 ```
 
+## Model architecture
+
+The core of the project is a **span-level ABSA architecture based on BETO**, designed to detect evidence spans and then classify each detected span by aspect, category and sentiment.
+
+The pipeline is:
+
+```text
+Spanish review
+      ↓
+     BETO
+      ↓
+Span detection
+      ↓
+Span + context
+   ↙    ↓    ↘
+Aspect Category Sentiment
+      ↓
+Structured output
+```
+
+### Architecture diagram
+
+> **Core artifact:** the architecture diagram below is the most important technical visual of the project.
+
+![ABSA model architecture](docs/images/absa-model-architecture.png)
+
 ## Features
 
 - Span-level evidence extraction.
@@ -30,6 +56,8 @@ Example concept:
 - Model loading from **Hugging Face Hub**.
 - Visual highlighting of detected evidence according to sentiment.
 - Tabular exploration of predictions and distributions.
+- CSV export of filtered evidence.
+- JSON export of complete inference results.
 
 ## Tech stack
 
@@ -37,38 +65,34 @@ Example concept:
 | --- | --- |
 | Language | Python 3.10+ |
 | NLP / Deep Learning | PyTorch, Transformers, Hugging Face |
+| Language model | BETO (`dccuchile/bert-base-spanish-wwm-uncased`) |
 | Data | Pandas, NumPy, Hugging Face Datasets |
 | ML evaluation | Scikit-learn |
 | Application | Streamlit |
 | Model distribution | Hugging Face Hub |
 | Training | GPU/CUDA supported |
 
-## Architecture
+## Streamlit application
 
-```text
-                    ┌─────────────────────┐
-                    │   Spanish Review    │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Tokenization / NLP  │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   ABSA Model        │
-                    │ Evidence + Aspects  │
-                    │ + Category + Sent.  │
-                    └──────────┬──────────┘
-                               │
-                 ┌─────────────┴─────────────┐
-                 ▼                           ▼
-        ┌─────────────────┐        ┌─────────────────┐
-        │ Structured JSON │        │ Streamlit UI    │
-        │ predictions     │        │ visualization   │
-        └─────────────────┘        └─────────────────┘
-```
+The project also includes an interactive Streamlit interface that turns the research model into a usable inference application.
+
+### Input and analysis
+
+Users can upload a CSV containing reviews or paste reviews directly into the application before running inference.
+
+![Streamlit input interface](docs/images/streamlit-input.png)
+
+### Evidence table
+
+Detected evidence can be filtered by **sentiment, aspect and category**, then exported as CSV for further analysis.
+
+![Streamlit evidence table](docs/images/streamlit-evidence-table.png)
+
+### Review-level analysis
+
+For each review, the application highlights the detected evidence and displays the associated aspect, category and sentiment.
+
+![Streamlit review detail](docs/images/streamlit-review-detail.png)
 
 ## Repository structure
 
@@ -79,6 +103,8 @@ Example concept:
 ├── app.py                   # Streamlit application
 ├── evaluator.py             # Evaluation and reporting utilities
 ├── data/                    # Labeled datasets
+├── docs/
+│   └── images/              # Architecture and application screenshots
 ├── requirements.txt
 └── README.md
 ```
