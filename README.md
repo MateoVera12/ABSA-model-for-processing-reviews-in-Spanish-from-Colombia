@@ -236,9 +236,17 @@ The project was developed for research on **aspect-based sentiment analysis in C
 
 The combination of **NLP research, model training, evaluation and application development** makes this project representative of an end-to-end machine-learning workflow rather than a standalone notebook experiment.
 
-## Author
+## Authors
 
 **Carlos Mateo Vera Grimaldo**  
-Systems Engineer · Backend / Software Development · NLP & AI
+Systems Engineer · Full-Stack / Software Development · NLP & AI
 
 GitHub: [@MateoVera12](https://github.com/MateoVera12)
+
+**Ana Gabriela Hernández Peña**  
+Systems Engineer · M. Sc. student in Industrial Engineering · NLP & AI
+
+GitHub: [@anga0527](https://github.com/anga0527)
+
+
+
