@@ -22,4 +22,4 @@ cv*.json
 
 # Project-specific (local folder)
 beto312/
-
+**/AGENTS.md
